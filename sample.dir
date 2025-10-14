@@ -1,0 +1,72 @@
+my-expo-app/
+├─ .vscode/
+├─ .github/
+
+
+├─ assets/
+│ ├─ fonts/
+│ ├─ images/
+│ └─ svgs/
+
+├─ app/ # expo-router "app" (layout-based) entry
+│ ├─ _layout.tsx # Root layout (provider + navigation shell)
+│ ├─ _layout.native.tsx # optional native-only layout (if needed)
+│ ├─ (tabs)/ # grouped routes; e.g. bottom tabs
+│ │ ├─ index.tsx # (tabs) root screen — show TabBar
+│ │ ├─ home.tsx
+│ │ └─ profile.tsx
+│ ├─ auth/ # auth stack screens
+│ │ ├─ sign-in.tsx
+│ │ └─ sign-up.tsx
+│ ├─ notifications/ # notifications screens
+│ │ └─ index.tsx
+│ ├─ settings/ # settings screens
+│ │ └─ index.tsx
+│ ├─ api/ # route endpoints (optional) / deep links
+│ └─ _loading.tsx # global loading fallback
+|
+|
+|
+├─ src/
+│ ├─ components/ # presentational + small composed components
+│ │ ├─ ui/ # design-system primitives (Button, Text, Card)
+│ │ ├─ layout/ # Header, ScreenWrapper, Section
+│ │ └─ shared/ # reusable components (Avatar, IconButton)
+│ ├─ screens/ # feature screens (for non-router setups)
+│ ├─ features/ # feature folders (ducks / domain-driven)
+│ │ ├─ auth/
+│ │ │ ├─ hooks.ts
+│ │ │ ├─ components/
+│ │ │ └─ auth.slice.ts
+│ │ └─ chat/
+│ ├─ navigation/ # helpers for navigation & deep linking (if needed)
+│ ├─ store/ # redux / zustand stores
+│ │ └─ index.ts
+│ ├─ services/ # side-effect services (api clients, sockets, analytics)
+│ │ ├─ apiClient.ts
+│ │ ├─ auth.service.ts
+│ │ ├─ pushNotifications.ts
+│ │ └─ ai.service.ts # wrappers for calling AI endpoints
+│ ├─ hooks/ # app-wide hooks
+│ │ ├─ useAuth.ts
+│ │ ├─ useNetwork.ts
+│ │ └─ useDebouncedValue.ts
+│ ├─ libs/ # 3rd-party wrappers, adapters
+│ ├─ utils/ # small pure helpers (formatters, validators)
+│ ├─ constants/ # app constants, keys, enums
+│ ├─ config/ # env-based config helpers
+│ ├─ styles/ # global styles, tokens, tailwind config
+│ ├─ types/ # shared TypeScript types
+│ ├─ ai/ # on-device or helper models, prompts, pipelines
+│ │ ├─ prompts/
+│ │ └─ llm-client.ts
+│ ├─ notifications/ # local notification scheduling & handlers
+│ ├─ emails/ # email templates (used by backend) —optional
+│ ├─ fonts/ # font-loading helpers
+│ └─ helpers/ # misc helpers (date helpers, math)
+
+├─ e2e/ # end-to-end tests (detox / playwright-mobile)
+├─ tests/ # unit tests
+├─ docs/ # architecture docs, API contracts
+├─ scripts/ # dev scripts (migrations, generate-types)
+└─ README.md
