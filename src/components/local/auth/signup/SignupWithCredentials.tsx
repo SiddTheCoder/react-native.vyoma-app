@@ -8,20 +8,30 @@ import {
   CircleIcon,
   CheckIcon,
 } from "lucide-react-native";
-import React, { use, useEffect } from "react";
-import { ActivityIndicator, Animated, Text, View } from "react-native";
+import React, {  useEffect } from "react";
+import {
+  ActivityIndicator,
+  Animated,
+  Text,
+  View,
+  StyleSheet,
+  Dimensions,
+} from "react-native";
 import { OtpInput } from "react-native-otp-entry";
 import { Button } from "react-native-paper";
 import { Progress, ProgressFilledTrack } from "@/components/ui/progress";
-import {
-  Radio,
-  RadioGroup,
-  RadioIndicator,
-  RadioIcon,
-  RadioLabel,
-} from "@/components/ui/radio";
 import { HStack } from "@/components/ui/hstack";
 import { Icon, EditIcon } from "@/components/ui/icon";
+import TermsAndPrivacy from "../../TermsAndPrivacy";
+import { useAppDispatch } from "@/src/store/hooks";
+import { setUser } from "@/src/store/features/auth/authSlice";
+import { saveToken } from "@/src/utils/authTokenManager";
+import { LinearGradient } from "expo-linear-gradient";
+import { MotiView, MotiText } from "moti";
+import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
+
 
 const API_ENDPOINT = "http://192.168.1.88:3000/api/mobile";
 
@@ -38,6 +48,8 @@ function SendEmailForOTP({
   const [message, setMessage] = React.useState<string | undefined>("");
   const [errorMsg, setErrorMsg] = React.useState<string | undefined>("");
   const [isSendingEmail, setIsSendingEmail] = React.useState(false);
+  const [isCheckingEmail, setIsCheckingEmail] = React.useState(false);
+
 
   const handleEmailContinue = async () => {
     setIsSendingEmail(true);
@@ -74,6 +86,7 @@ function SendEmailForOTP({
   };
 
   const checkUniqueEmail = async (email?: string) => {
+    setIsCheckingEmail(true);
     console.log("hitting api function with data", data.email);
     try {
       const res = await axios.post(`${API_ENDPOINT}/check-email-availability`, {
@@ -85,6 +98,7 @@ function SendEmailForOTP({
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 409) {
           console.log("error", error.response.data.message);
+          setIsCheckingEmail(false);
           setErrorMsg(error.response.data.message);
           setTimeout(() => {
             setErrorMsg("");
@@ -95,11 +109,14 @@ function SendEmailForOTP({
             "Error checking email:",
             error.response?.data || error.message
           );
-          setMessage("Error checking email availability");
+          setIsCheckingEmail(false);
+          setErrorMsg( error.response?.data.message || error.message);
         }
       } else {
         console.error(error);
       }
+    } finally {
+      setIsCheckingEmail(false);
     }
   };
 
@@ -158,6 +175,12 @@ function SendEmailForOTP({
         <Text className="text-red-500 w-[88%] text-left">{errorMsg}</Text>
       )}
 
+      {isCheckingEmail && (
+        <Text className="text-gray-500 w-[88%] text-left">
+          Checking email availability...
+        </Text>
+      )}
+
       <Button
         disabled={!isStepOneReady || isSendingEmail}
         onPress={handleEmailContinue}
@@ -169,7 +192,7 @@ function SendEmailForOTP({
             isStepOneReady && !isSendingEmail ? "#6400CD" : "#D1D5DB"
           }`,
           width: "90%",
-          marginTop: 6,
+          marginTop: 0  ,
           justifyContent: "center",
           alignItems: "center",
         }}
@@ -186,12 +209,7 @@ function SendEmailForOTP({
       </Button>
 
       <View className="absolute bottom-20 w-[70%]">
-        <Text className="text-center text-gray-700 text-sm">
-          By using Vyoma, you agree to our{" "}
-          <Text className="text-gray-600 font-semibold">Terms</Text>
-          {" and "}
-          <Text className="text-gray-600 font-semibold">Privacy Policy</Text>
-        </Text>
+        <TermsAndPrivacy />
       </View>
     </View>
   );
@@ -307,25 +325,23 @@ function VerifyEmailOTP({ data, handleTextChange, setSteps, steps }: any) {
       </Text>
 
       <View className="absolute bottom-20 w-[70%]">
-        <Text className="text-center text-gray-700 text-sm">
-          By using Vyoma, you agree to our{" "}
-          <Text className="text-gray-600 font-semibold">Terms</Text>
-          {" and "}
-          <Text className="text-gray-600 font-semibold">Privacy Policy</Text>
-        </Text>
+        <TermsAndPrivacy />
       </View>
     </View>
   );
 }
 
 function AddPassword({ data, handleTextChange, setSteps, steps }: any) {
+  const dispacth = useAppDispatch()
   const [showPassword, setShowPassword] = React.useState(false);
   const [scorePercentage, setScorePercentage] = React.useState(0);
+  const [loading, setLoading] = React.useState(false);
   const [requirements, setRequirements] = React.useState({
     length: false,
     number: false,
     special: false,
   });
+  const [isSignupDone, setIsSignupDone] = React.useState(false);
 
   // Calculate password strength percentage
   const validatePassword = (password: string) => {
@@ -366,6 +382,28 @@ function AddPassword({ data, handleTextChange, setSteps, steps }: any) {
       <Text color={met ? "#22C55E" : "#9CA3AF"}>{label}</Text>
     </HStack>
   );
+
+  const handleSubmitCredentialsFinally = async () => {
+    console.log("hitting the api function with data", data);
+    try {
+      setLoading(true);
+      const res = await axios.post(`${process.env.EXPO_PUBLIC_API_END_POINT}/mobile/signup`, {
+        email: data.email,
+        password: data.password
+      });
+      console.log(
+        "res recieved whle sending password",
+        JSON.stringify(res.data.data, null, 2)
+      );
+      setIsSignupDone(true)
+      dispacth(setUser(res.data.data));
+      saveToken(res.data.data.token);
+    } catch (error) {
+      console.log("error whole sending password", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <View className="h-[100%] w-[100%] flex flex-col py-20 items-center gap-4 pb-20 px-2 relative">
@@ -431,20 +469,43 @@ function AddPassword({ data, handleTextChange, setSteps, steps }: any) {
         />
       </View>
 
+      <Button
+        disabled={scorePercentage < 100 || loading}
+        textColor="white"
+        mode="contained-tonal"
+        onPress={handleSubmitCredentialsFinally}
+        style={{
+          borderRadius: 16,
+          height: 50,
+          backgroundColor: `${!loading ? "#6400CD" : "#D1D5DB"}`,
+          width: "90%",
+          marginTop: 12,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+        labelStyle={{
+          fontSize: 15,
+          fontWeight: "600",
+        }}
+      >
+        {loading ? (
+          <ActivityIndicator color="white" size="small" />
+        ) : (
+          "Create Password"
+        )}
+      </Button>
+
       <View className="absolute bottom-20 w-[70%]">
-        <Text className="text-center text-gray-700 text-sm">
-          By using Vyoma, you agree to our{" "}
-          <Text className="text-gray-600 font-semibold">Terms</Text>
-          {" and "}
-          <Text className="text-gray-600 font-semibold">Privacy Policy</Text>
-        </Text>
+        <TermsAndPrivacy />
       </View>
+      {isSignupDone && <GreetAccountCreatedAndRedirectToHome />}
     </View>
   );
 }
 
+
 export default function SignupWithCredentials({ setCount, count }: any) {
-  const [steps, setSteps] = React.useState(3);
+  const [steps, setSteps] = React.useState(1);
 
   const [data, setData] = React.useState({
     email: "",
@@ -490,7 +551,7 @@ export default function SignupWithCredentials({ setCount, count }: any) {
         setSteps={setSteps}
       />
     );
-  }
+  } 
 
   return null;
 }
@@ -512,3 +573,109 @@ const ProgressBars = ({ currentStep, totalSteps = 3 }: any) => {
     </View>
   );
 };
+
+
+const { width, height } = Dimensions.get("window");
+function GreetAccountCreatedAndRedirectToHome() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // ✅ subtle vibration when animation starts
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+    // ✅ navigate after animation finishes (2s)
+    const timer = setTimeout(() => {
+      router.replace("/(tabs)");
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      {/* Animated gradient background */}
+      <MotiView
+        from={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1500 }}
+        style={StyleSheet.absoluteFill}
+      >
+        <LinearGradient
+          colors={["#ffffff", "#8A2BE2", "#6A5ACD"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+      </MotiView>
+
+      {/* Ripple burst from center */}
+      <MotiView
+        from={{ scale: 0, opacity: 0.5 }}
+        animate={{ scale: 6, opacity: 0 }}
+        transition={{ type: "timing", duration: 1500 }}
+        style={styles.ripple}
+      />
+
+      {/* Checkmark icon pop */}
+      <MotiView
+        from={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", damping: 10, mass: 1 }}
+        style={{ marginBottom: 10 }}
+      >
+        <Ionicons name="checkmark-circle" size={80} color="#ffffff" />
+      </MotiView>
+
+      {/* Success Text fade-in */}
+      <MotiText
+        from={{ opacity: 0, translateY: 20 }}
+        animate={{ opacity: 1, translateY: 0 }}
+        transition={{ type: "timing", duration: 800 }}
+        style={styles.text}
+      >
+        Account created successfully!
+      </MotiText>
+
+      {/* Optional subtle subtext */}
+      <MotiText
+        from={{ opacity: 0 }}
+        animate={{ opacity: 0.7 }}
+        transition={{ delay: 1000, duration: 800 }}
+        style={styles.subText}
+      >
+        Redirecting to your dashboard...
+      </MotiText>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    position: "absolute",
+    height,
+    width,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
+    overflow: "hidden",
+  },
+  ripple: {
+    position: "absolute",
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "rgba(255,255,255,0.4)",
+  },
+  text: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#fff",
+    textAlign: "center",
+  },
+  subText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: "#E0E0E0",
+    textAlign: "center",
+  },
+});

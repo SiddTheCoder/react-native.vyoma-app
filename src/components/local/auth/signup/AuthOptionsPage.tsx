@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react-native";
 import React from "react";
 import {  FlatList, Text, View } from "react-native";
 import { Button } from "react-native-paper";
-
+import TermsAndPrivacy from "../../TermsAndPrivacy";
 
 export default function AuthOptionsPage({ setCount, count }: any) {
   const oAuthOptions = [
@@ -98,12 +98,7 @@ export default function AuthOptionsPage({ setCount, count }: any) {
       </View>
 
       <View className="absolute bottom-20 w-[70%]">
-        <Text className="text-center text-gray-700 text-sm">
-          By using Vyoma, you agree to our{" "}
-          <Text className="text-gray-600 font-semibold">Terms</Text>
-          {" and "}
-          <Text className="text-gray-600 font-semibold">Privacy Policy</Text>
-        </Text>
+        <TermsAndPrivacy />
       </View>
     </View>
   );

@@ -4,7 +4,7 @@ import SignupWithCredentials from "@/src/components/local/auth/signup/SignupWith
 import AuthOptionsPage from "@/src/components/local/auth/signup/AuthOptionsPage";
 
 const signup = () => {
-  const [count, setCount] = React.useState(2);
+  const [count, setCount] = React.useState(0);
 
   if (count === 0) {
     return <LandSignupPage setCount={setCount} />;
