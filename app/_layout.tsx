@@ -6,87 +6,74 @@ import {
   setUser,
 } from "@/src/store/features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
-import { getToken } from "@/src/utils/authTokenManager";
+import { deleteToken, getToken } from "@/src/utils/authTokenManager";
 import axios from "axios";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useCallback, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 import { RootState, store } from "../src/store/store";
 
-SplashScreen.preventAutoHideAsync(); // 👈 Keeps splash visible until we're ready
+SplashScreen.preventAutoHideAsync();
 
 function AppNavigator() {
   const { isAuthenticated, loading } = useAppSelector(
     (state: RootState) => state.auth
   );
   const dispatch = useAppDispatch();
-
-  const checkSession = useCallback(async () => {
-    try {
-      console.log("hitting api");
-      dispatch(setLoading(true));
-
-      const token = await getToken();
-      console.log("token", token);
-      if (!token) {
-        dispatch(logout());
-        console.log("No token found");
-        return;
-      }
-
-      console.log(
-        "hitting the api function with token",
-        token,
-        " with env",
-        process.env.EXPO_PUBLIC_API_END_POINT
-      );
-      const res = await axios.get(
-        `${process.env.EXPO_PUBLIC_API_END_POINT}/mobile/session`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      console.log("res", JSON.stringify(res.data.data, null, 2));
-
-      if (res.data.data) {
-        dispatch(setUser(res.data.data));
-      } else {
-        // await deleteToken();
-        dispatch(logout());
-      }
-    } catch (error) {
-      console.error("❌ Session check failed:", error);
-      // await deleteToken();
-      dispatch(logout());
-    } finally {
-      dispatch(setLoading(false));
-      await SplashScreen.hideAsync(); // 👈 Hide splash *after everything is ready*
-    }
-  }, [dispatch]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    checkSession();
-    (async () => {
-      const token = await getToken();
-      console.log("token:", token);
-    })();
-  }, [checkSession]);
+    const checkSession = async () => {
+      try {
+        console.log("hitting api");
+        dispatch(setLoading(true));
 
-  // useEffect(() => {
-  //   (async () => {
-  //     // saveToken(
-  //     //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OGYyNTIzNGUwZGViYWQ1NzdhMmEzYzYiLCJlbWFpbCI6InNoYW1iaHV5YWRhdjkwMDFAZ21haWwuY29tIiwidXNlcm5hbWUiOiJzaGFtYmh1eWFkYXY5MDAxIiwiaWF0IjoxNzYwNzExMjgyLCJleHAiOjE3NjEzMTYwODJ9.S_smxgE2ujHc_XtW5sfXO-f_CTPVU4AA11tu69ukdLY"
-  //     // );
-  //     const token = await getToken();
-  //     console.log("🎯 Retrieved:", token);
-  //   })();
-  // }, []);
+        const token = await getToken();
+        console.log("token", token);
 
-  if (loading) {
-    // Optional fallback (should rarely show)
+        if (!token) {
+          dispatch(logout());
+          console.log("No token found");
+          return;
+        }
+
+        const res = await axios.get(
+          `${process.env.EXPO_PUBLIC_API_END_POINT}/mobile/session`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        console.log("res", JSON.stringify(res.data.data, null, 2));
+
+        if (res.data.data) {
+          dispatch(setUser(res.data.data));
+        } else {
+          await deleteToken();
+          dispatch(logout());
+        }
+      } catch (error) {
+        console.error("❌ Session check failed:", error);
+        await deleteToken();
+        dispatch(logout());
+      } finally {
+        dispatch(setLoading(false));
+        setIsInitialized(true);
+        await SplashScreen.hideAsync();
+      }
+    };
+
+    // Only run session check on mount
+    if (!isInitialized) {
+      checkSession();
+    }
+  }, [dispatch, isInitialized]); // 👈 Remove checkSession dependency
+
+  // Show loading only during initial session check
+  if (loading && !isInitialized) {
     return (
       <View className="flex-1 justify-center items-center bg-white">
         <ActivityIndicator size="large" color="#000" />
@@ -97,12 +84,13 @@ function AppNavigator() {
 
   console.log("isAuthenticated", isAuthenticated);
 
+  // Simplified Stack - let React handle re-rendering
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack key={isAuthenticated ? "tabs" : "index"} screenOptions={{ headerShown: false }}>
       {isAuthenticated ? (
         <Stack.Screen name="(tabs)/index" />
       ) : (
-        <Stack.Screen name="(auth)/signup" />
+        <Stack.Screen name="index" />
       )}
     </Stack>
   );
@@ -111,9 +99,11 @@ function AppNavigator() {
 export default function RootLayout() {
   return (
     <Provider store={store}>
-      <GluestackUIProvider mode="system">
-        <AppNavigator />
-      </GluestackUIProvider>
+      <SafeAreaProvider>
+        <GluestackUIProvider mode="system">
+          <AppNavigator />
+        </GluestackUIProvider>
+      </SafeAreaProvider>
     </Provider>
   );
 }

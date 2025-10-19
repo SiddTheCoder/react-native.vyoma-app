@@ -21,8 +21,10 @@ const authSlice = createSlice({
   reducers: {
     setUser(state, action: PayloadAction<{ user: any; token?: string }>) {
       state.user = action.payload.user;
+      console.log("usser set", action.payload.user);
       if (action.payload.user) {
-         state.isAuthenticated = true;
+        state.isAuthenticated = true;
+        console.log("authnetication set", action.payload.user);
       } else {
         state.isAuthenticated = false;
       }
@@ -33,10 +35,12 @@ const authSlice = createSlice({
     logout(state) {
       state.user = null;
       state.token = null;
+      state.isAuthenticated = false; 
+      console.log("logout emmited from slice", state)
     },
     setLoading(state, action: PayloadAction<boolean>) {
       state.loading = action.payload;
-    }
+    },
   },
 });
 

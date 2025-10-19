@@ -1,17 +1,23 @@
-import React from "react";
-import LandSignupPage from "@/src/components/local/auth/signup/LandSignupPage";
+import AuthOptionsPage from "@/src/components/local/auth/AuthOptionsPage";
 import SignupWithCredentials from "@/src/components/local/auth/signup/SignupWithCredentials";
-import AuthOptionsPage from "@/src/components/local/auth/signup/AuthOptionsPage";
+import React from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const signup = () => {
-  const [count, setCount] = React.useState(0);
+  const [count, setCount] = React.useState(1);
 
-  if (count === 0) {
-    return <LandSignupPage setCount={setCount} />;
-  } else if (count === 1) {
-    return <AuthOptionsPage setCount={setCount} count={count} />;
+  if (count === 1) {
+    return (
+      <SafeAreaView>
+        <AuthOptionsPage setCount={setCount} count={count} />
+      </SafeAreaView>
+    );
   } else if (count === 2) {
-    return <SignupWithCredentials setCount={setCount} count={count} />;
+    return (
+      <SafeAreaView>
+        <SignupWithCredentials setCount={setCount} count={count} />
+      </SafeAreaView>
+    );
   }
 };
 

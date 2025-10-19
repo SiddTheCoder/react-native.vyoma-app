@@ -1,37 +1,36 @@
+import { HStack } from "@/components/ui/hstack";
+import { Icon } from "@/components/ui/icon";
 import { Input, InputField, InputSlot } from "@/components/ui/input";
-import { emailValidation } from "@/src/schemas/emailValidation";
+import { Progress, ProgressFilledTrack } from "@/components/ui/progress";
+import { emailValidation } from "@/src/schemas/validation";
+import { setUser } from "@/src/store/features/auth/authSlice";
+import { useAppDispatch } from "@/src/store/hooks";
+import { saveToken } from "@/src/utils/authTokenManager";
+import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
+import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import {
   ArrowLeft,
+  CheckIcon,
+  CircleIcon,
   Eye,
   EyeOff,
-  CircleIcon,
-  CheckIcon,
 } from "lucide-react-native";
-import React, {  useEffect } from "react";
+import { MotiText, MotiView } from "moti";
+import React, { useEffect } from "react";
 import {
   ActivityIndicator,
   Animated,
+  Dimensions,
+  StyleSheet,
   Text,
   View,
-  StyleSheet,
-  Dimensions,
 } from "react-native";
 import { OtpInput } from "react-native-otp-entry";
 import { Button } from "react-native-paper";
-import { Progress, ProgressFilledTrack } from "@/components/ui/progress";
-import { HStack } from "@/components/ui/hstack";
-import { Icon, EditIcon } from "@/components/ui/icon";
 import TermsAndPrivacy from "../../TermsAndPrivacy";
-import { useAppDispatch } from "@/src/store/hooks";
-import { setUser } from "@/src/store/features/auth/authSlice";
-import { saveToken } from "@/src/utils/authTokenManager";
-import { LinearGradient } from "expo-linear-gradient";
-import { MotiView, MotiText } from "moti";
-import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
-
 
 const API_ENDPOINT = "http://192.168.1.88:3000/api/mobile";
 
@@ -49,7 +48,6 @@ function SendEmailForOTP({
   const [errorMsg, setErrorMsg] = React.useState<string | undefined>("");
   const [isSendingEmail, setIsSendingEmail] = React.useState(false);
   const [isCheckingEmail, setIsCheckingEmail] = React.useState(false);
-
 
   const handleEmailContinue = async () => {
     setIsSendingEmail(true);
@@ -110,7 +108,7 @@ function SendEmailForOTP({
             error.response?.data || error.message
           );
           setIsCheckingEmail(false);
-          setErrorMsg( error.response?.data.message || error.message);
+          setErrorMsg(error.response?.data.message || error.message);
         }
       } else {
         console.error(error);
@@ -136,9 +134,12 @@ function SendEmailForOTP({
   }, [data.email]);
 
   return (
-    <View className="h-[100%] w-[100%] flex flex-col py-20 items-center gap-4 pb-20 px-2 relative">
+    <View
+      style={{ paddingTop: 30 }}
+      className="h-[100%] w-[100%] flex flex-col items-center gap-4 pb-20 px-2 relative"
+    >
       <View
-        style={{ gap: 75 }}
+        style={{ gap: 70 }}
         className="flex flex-row w-full items-center px-4"
       >
         <ArrowLeft color="#000" size={28} onPress={() => setCount(count - 1)} />
@@ -192,7 +193,7 @@ function SendEmailForOTP({
             isStepOneReady && !isSendingEmail ? "#6400CD" : "#D1D5DB"
           }`,
           width: "90%",
-          marginTop: 0  ,
+          marginTop: 0,
           justifyContent: "center",
           alignItems: "center",
         }}
@@ -208,7 +209,7 @@ function SendEmailForOTP({
         )}
       </Button>
 
-      <View className="absolute bottom-20 w-[70%]">
+      <View className="absolute bottom-10 w-[70%]">
         <TermsAndPrivacy />
       </View>
     </View>
@@ -251,7 +252,10 @@ function VerifyEmailOTP({ data, handleTextChange, setSteps, steps }: any) {
     }
   };
   return (
-    <View className="h-[100%] w-[100%] flex flex-col py-20 items-center gap-4 pb-20 px-2 relative">
+    <View
+      style={{ paddingTop: 30 }}
+      className="h-[100%] w-[100%] flex flex-col  items-center gap-4 px-2 relative"
+    >
       <View
         style={{ gap: 75 }}
         className="flex flex-row w-full items-center px-4"
@@ -264,7 +268,7 @@ function VerifyEmailOTP({ data, handleTextChange, setSteps, steps }: any) {
         <ProgressBars currentStep={steps} totalSteps={3} />
       </View>
 
-      <Text className="mt-10 text-center px-4">
+      <Text className="mt-6 text-center px-4">
         We have just sent a 6 digit verification code to {data.email}
       </Text>
 
@@ -324,7 +328,7 @@ function VerifyEmailOTP({ data, handleTextChange, setSteps, steps }: any) {
         </Text>
       </Text>
 
-      <View className="absolute bottom-20 w-[70%]">
+      <View className="absolute bottom-10 w-[70%]">
         <TermsAndPrivacy />
       </View>
     </View>
@@ -332,7 +336,8 @@ function VerifyEmailOTP({ data, handleTextChange, setSteps, steps }: any) {
 }
 
 function AddPassword({ data, handleTextChange, setSteps, steps }: any) {
-  const dispacth = useAppDispatch()
+  const dispacth = useAppDispatch();
+  const router = useRouter()
   const [showPassword, setShowPassword] = React.useState(false);
   const [scorePercentage, setScorePercentage] = React.useState(0);
   const [loading, setLoading] = React.useState(false);
@@ -387,26 +392,35 @@ function AddPassword({ data, handleTextChange, setSteps, steps }: any) {
     console.log("hitting the api function with data", data);
     try {
       setLoading(true);
-      const res = await axios.post(`${process.env.EXPO_PUBLIC_API_END_POINT}/mobile/signup`, {
-        email: data.email,
-        password: data.password
-      });
+      const res = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_END_POINT}/mobile/signup`,
+        {
+          email: data.email,
+          password: data.password,
+        }
+      );
       console.log(
         "res recieved whle sending password",
         JSON.stringify(res.data.data, null, 2)
       );
-      setIsSignupDone(true)
-      dispacth(setUser(res.data.data));
-      saveToken(res.data.data.token);
+      setIsSignupDone(true);
+      setTimeout(() => {
+        dispacth(setUser(res.data.data));
+        saveToken(res.data.data.token);
+        router.replace("/(tabs)");
+      }, 1000);
     } catch (error) {
-      console.log("error whole sending password", error)
+      console.log("error whole sending password", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <View className="h-[100%] w-[100%] flex flex-col py-20 items-center gap-4 pb-20 px-2 relative">
+    <View
+      style={{ paddingTop: 30 }}
+      className="h-[100%] w-[100%] flex flex-col items-center gap-4 pb-20 px-2 relative"
+    >
       <View
         style={{ gap: 55 }}
         className="flex flex-row w-full items-center px-4"
@@ -415,7 +429,7 @@ function AddPassword({ data, handleTextChange, setSteps, steps }: any) {
         <Text className="text-xl font-bold">Create your password</Text>
       </View>
 
-      <View style={{ marginBottom: 20 }} className="text-center px-16">
+      <View style={{ marginBottom: 10 }} className="text-center px-16">
         <ProgressBars currentStep={steps} totalSteps={3} />
       </View>
 
@@ -443,7 +457,7 @@ function AddPassword({ data, handleTextChange, setSteps, steps }: any) {
           multiline={false}
         />
         <InputSlot onPress={() => setShowPassword((prev) => !prev)}>
-          {showPassword ? <Eye /> : <EyeOff />}
+          {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
         </InputSlot>
       </Input>
 
@@ -472,12 +486,12 @@ function AddPassword({ data, handleTextChange, setSteps, steps }: any) {
       <Button
         disabled={scorePercentage < 100 || loading}
         textColor="white"
-        mode="contained-tonal"
+        mode="contained"
         onPress={handleSubmitCredentialsFinally}
         style={{
           borderRadius: 16,
           height: 50,
-          backgroundColor: `${!loading ? "#6400CD" : "#D1D5DB"}`,
+          backgroundColor: `${scorePercentage < 100 ? "#D1D5DB" : "#6400CD"}`,
           width: "90%",
           marginTop: 12,
           justifyContent: "center",
@@ -495,14 +509,13 @@ function AddPassword({ data, handleTextChange, setSteps, steps }: any) {
         )}
       </Button>
 
-      <View className="absolute bottom-20 w-[70%]">
+      <View className="absolute bottom-10 w-[70%]">
         <TermsAndPrivacy />
       </View>
       {isSignupDone && <GreetAccountCreatedAndRedirectToHome />}
     </View>
   );
 }
-
 
 export default function SignupWithCredentials({ setCount, count }: any) {
   const [steps, setSteps] = React.useState(1);
@@ -551,7 +564,7 @@ export default function SignupWithCredentials({ setCount, count }: any) {
         setSteps={setSteps}
       />
     );
-  } 
+  }
 
   return null;
 }
@@ -573,7 +586,6 @@ const ProgressBars = ({ currentStep, totalSteps = 3 }: any) => {
     </View>
   );
 };
-
 
 const { width, height } = Dimensions.get("window");
 function GreetAccountCreatedAndRedirectToHome() {

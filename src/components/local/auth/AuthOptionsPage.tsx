@@ -1,11 +1,13 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
 import React from "react";
-import {  FlatList, Text, View } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import { Button } from "react-native-paper";
-import TermsAndPrivacy from "../../TermsAndPrivacy";
+import TermsAndPrivacy from "../TermsAndPrivacy";
 
-export default function AuthOptionsPage({ setCount, count }: any) {
+export default function AuthOptionsPage({ setCount, count, source_utm }: any) {
+  const router = useRouter();
   const oAuthOptions = [
     {
       name: "Google",
@@ -22,14 +24,19 @@ export default function AuthOptionsPage({ setCount, count }: any) {
   ];
 
   return (
-    <View className="h-[100%] w-[100%] flex flex-col py-20 items-center gap-4 pb-20 px-2 relative">
+    <View
+      style={{ paddingTop: 30 }}
+      className="h-[100%] w-[100%] flex flex-col items-center gap-4 px-2 relative"
+    >
       <View
         style={{ gap: 60 }}
         className="flex flex-row w-full items-center px-4"
       >
         {/* FIXED: add color and size explicitly */}
-        <ArrowLeft color="#000" size={28} onPress={() => setCount(count - 1)} />
-        <Text className="text-xl font-bold">Create new account</Text>
+        <ArrowLeft color="#000" size={28} onPress={() => router.back()} />
+        <Text className="text-xl font-bold">
+          {source_utm === "signin" ? " Sign in to Vyoma" : "Create new account"}
+        </Text>
       </View>
 
       <Text className="text-center px-4">
@@ -97,7 +104,7 @@ export default function AuthOptionsPage({ setCount, count }: any) {
         />
       </View>
 
-      <View className="absolute bottom-20 w-[70%]">
+      <View className="absolute bottom-10 w-[70%]">
         <TermsAndPrivacy />
       </View>
     </View>
