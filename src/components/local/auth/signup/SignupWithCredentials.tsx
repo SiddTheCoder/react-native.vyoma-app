@@ -25,9 +25,9 @@ import {
   Animated,
   Dimensions,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
+import { Text } from "@/src/components/ThemedText";
 import { OtpInput } from "react-native-otp-entry";
 import { Button } from "react-native-paper";
 import TermsAndPrivacy from "../../TermsAndPrivacy";
@@ -159,9 +159,10 @@ function SendEmailForOTP({
         isDisabled={false}
         isInvalid={false}
         isReadOnly={false}
-        className="rounded-2xl h-14 w-[90%] mx-auto"
+        className="rounded-2xl h-14 w-[90%] mx-auto border-2 border-gray-300 data-[focus=true]:border-primary-500"
       >
         <InputField
+          className="text-black"
           placeholder="Enter your email"
           value={data.email}
           onChangeText={(text) => handleTextChange("email", text)}
@@ -269,7 +270,7 @@ function VerifyEmailOTP({ data, handleTextChange, setSteps, steps }: any) {
       </View>
 
       <Text className="mt-6 text-center px-4">
-        We have just sent a 6 digit verification code to {data.email}
+        We have just sent a 6 digit verification code to <Text style={{fontWeight: "bold"}}>{data.email}</Text>
       </Text>
 
       <View className="w-[90%] mt-4">
@@ -321,6 +322,7 @@ function VerifyEmailOTP({ data, handleTextChange, setSteps, steps }: any) {
       <Text>
         Wrong email?{" "}
         <Text
+          style={{ fontWeight: "bold" }}
           onPress={() => setSteps(steps - 1)}
           className="text-gray-600 font-semibold"
         >
@@ -455,6 +457,7 @@ function AddPassword({ data, handleTextChange, setSteps, steps }: any) {
             validatePassword(text);
           }}
           multiline={false}
+          className="text-black"
         />
         <InputSlot onPress={() => setShowPassword((prev) => !prev)}>
           {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}

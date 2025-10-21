@@ -11,9 +11,10 @@ import { useRouter } from "expo-router";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react-native";
 import { MotiText, MotiView } from "moti";
 import React, { useEffect } from "react";
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import { Dimensions, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Button } from "react-native-paper";
 import TermsAndPrivacy from "../../TermsAndPrivacy";
+import { Text } from "@/src/components/ThemedText";
 
 const SigninWithCredentials = () => {
   const router = useRouter();
@@ -121,6 +122,7 @@ const SigninWithCredentials = () => {
         className="rounded-2xl h-14 w-[90%] mx-auto"
       >
         <InputField
+          className="text-black"
           placeholder="Enter your email"
           value={data.identifier}
           onChangeText={(text) => handleTextChange("identifier", text)}
@@ -140,8 +142,9 @@ const SigninWithCredentials = () => {
         isReadOnly={false}
         className="rounded-2xl h-14 w-[90%] mx-auto relative"
         style={{ paddingRight: 10 }}
-      >
+        >
         <InputField
+        className="text-black"
           type={showPassword ? "text" : "password"}
           placeholder="Enter Password"
           value={data.password}

@@ -2,9 +2,10 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
 import React from "react";
-import { FlatList, Text, View } from "react-native";
+import { FlatList, View } from "react-native";
 import { Button } from "react-native-paper";
 import TermsAndPrivacy from "../TermsAndPrivacy";
+import { Text } from "@/src/components/ThemedText";
 
 export default function AuthOptionsPage({ setCount, count, source_utm }: any) {
   const router = useRouter();

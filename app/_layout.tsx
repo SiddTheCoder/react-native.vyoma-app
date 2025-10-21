@@ -11,10 +11,10 @@ import axios from "axios";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 import { RootState, store } from "../src/store/store";
+import LoadingScreen from "@/src/components/local/LoadingScreen";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -70,25 +70,20 @@ function AppNavigator() {
     if (!isInitialized) {
       checkSession();
     }
-  }, [dispatch, isInitialized]); // 👈 Remove checkSession dependency
+  }, [dispatch, isInitialized]);
 
   // Show loading only during initial session check
   if (loading && !isInitialized) {
-    return (
-      <View className="flex-1 justify-center items-center bg-white">
-        <ActivityIndicator size="large" color="#000" />
-        <Text>Loading...</Text>
-      </View>
-    );
+    return <LoadingScreen />
   }
 
   console.log("isAuthenticated", isAuthenticated);
 
-  // Simplified Stack - let React handle re-rendering
+  
   return (
     <Stack key={isAuthenticated ? "tabs" : "index"} screenOptions={{ headerShown: false }}>
       {isAuthenticated ? (
-        <Stack.Screen name="(tabs)/index" />
+        <Stack.Screen name="(tabs)" />
       ) : (
         <Stack.Screen name="index" />
       )}

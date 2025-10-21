@@ -2,12 +2,12 @@ import { View } from 'react-native'
 import React from 'react'
 import { Text } from "@/src/components/ThemedText";
 
-const interview = () => {
+const template = () => {
   return (
     <View>
-      <Text>interview</Text>
+      <Text>template</Text>
     </View>
   )
 }
 
-export default interview
+export default template
